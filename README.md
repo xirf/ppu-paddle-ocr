@@ -196,7 +196,7 @@ Controls preprocessing and filtering parameters during text detection.
 
 | Property               |            Type            |         Default         | Description                                                      |
 | :--------------------- | :------------------------: | :---------------------: | :--------------------------------------------------------------- |
-| `autoDeskew`           |         `boolean`          |         `True`          | Correct orientation using multiple text analysis.                |
+| `autoDeskew`           |         `boolean`          |         `False`         | Correct orientation using multiple text analysis.                |
 | `mean`                 | `[number, number, number]` | `[0.485, 0.456, 0.406]` | Per-channel mean values for input normalization [R, G, B].       |
 | `stdDeviation`         | `[number, number, number]` | `[0.229, 0.224, 0.225]` | Per-channel standard deviation values for input normalization.   |
 | `maxSideLength`        |          `number`          |          `960`          | Maximum dimension (longest side) for input images (px).          |
@@ -221,3 +221,29 @@ Enable verbose logs and save intermediate images to help debug OCR pipelines.
 | `verbose`     | `boolean` | `false` | Turn on detailed console logs of each processing step. |
 | `debug`       | `boolean` | `false` | Write intermediate image frames to disk.               |
 | `debugFolder` | `string`  |    `    |
+
+## Benchmark
+
+Run `bun task bench`. Current result:
+
+```bash
+$ bun scripts/task.ts bench
+Running benchmark: index.bench.ts
+clk: ~3.10 GHz
+cpu: Apple M1
+runtime: bun 1.3.0 (arm64-darwin)
+
+benchmark                   avg (min … max) p75 / p99    (min … top 1%)
+------------------------------------------- -------------------------------
+infer test 1                 272.36 ms/iter 272.98 ms        █
+                    (259.56 ms … 306.24 ms) 290.11 ms ▅▅▅▅▅  █▅▅▅         ▅
+                    ( 32.00 kb …  51.00 mb)  11.33 mb █████▁▁████▁▁▁▁▁▁▁▁▁█
+
+infer test 2                 274.72 ms/iter 272.44 ms █
+                    (260.34 ms … 334.27 ms) 288.30 ms █
+                    (  0.00  b …   9.48 mb)   1.95 mb ██▁██▁█▁██▁▁▁▁▁▁▁▁▁██
+
+summary
+  infer test 1
+   1.01x faster than infer test 2
+```
