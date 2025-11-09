@@ -89,6 +89,34 @@ console.log(result.text);
 await service.destroy();
 ```
 
+#### Optimizing Performance with Session Options
+
+You can fine-tune the ONNX Runtime session configuration for optimal performance:
+
+```ts
+import { PaddleOcrService } from "ppu-paddle-ocr";
+
+// Create a service with optimized session options
+const service = new PaddleOcrService({
+  session: {
+    executionProviders: ["cpu"], // Use CPU-only for consistent performance
+    graphOptimizationLevel: "all", // Enable all optimizations
+    enableCpuMemArena: true, // Better memory management
+    enableMemPattern: true, // Memory pattern optimization
+    executionMode: "sequential", // Better for single-threaded performance
+    interOpNumThreads: 0, // Let ONNX decide optimal thread count
+    intraOpNumThreads: 0, // Let ONNX decide optimal thread count
+  },
+});
+
+await service.initialize();
+
+const result = await service.recognize("./assets/receipt.jpg");
+console.log(result.text);
+
+await service.destroy();
+```
+
 #### Using Custom Models
 
 You can provide custom models via file paths, URLs, or `ArrayBuffer`s during initialization. If no models are provided, the default models will be fetched from GitHub.
@@ -145,6 +173,30 @@ const result = await service.recognize("./assets/receipt.jpg", {
 const anotherResult = await service.recognize("./assets/another-image.jpg");
 ```
 
+#### Disabling Cache for Specific Calls
+
+You can disable caching for individual OCR calls if you need fresh processing each time:
+
+```ts
+// Initialize the service first
+const service = new PaddleOcrService();
+await service.initialize();
+
+// Process with caching (default behavior)
+const cachedResult = await service.recognize("./assets/receipt.jpg");
+
+// Process without caching for this specific call
+const freshResult = await service.recognize("./assets/receipt.jpg", {
+  noCache: true,
+});
+
+// You can also combine noCache with other options
+const result = await service.recognize("./assets/receipt.jpg", {
+  noCache: true,
+  flatten: true,
+});
+```
+
 ## Models
 
 ### `ppu-paddle-ocr` v2.x.x (Default)
@@ -173,8 +225,21 @@ export interface PaddleOptions {
 
   /** Controls logging and image dump behavior for debugging. */
   debugging?: DebuggingOptions;
+
+  /** ONNX Runtime session configuration options. */
+  session?: SessionOptions;
 }
 ```
+
+#### `RecognizeOptions`
+
+Options for individual `recognize()` calls.
+
+| Property      |           Type           | Default | Description                                                    |
+| :------------ | :----------------------: | :-----: | :------------------------------------------------------------- |
+| `flatten`     |        `boolean`         | `false` | Return flattened results instead of grouped by lines.           |
+| `dictionary`  | `string \| ArrayBuffer` |  `null` | Custom character dictionary for this specific call.            |
+| `noCache`     |        `boolean`         | `false` | Disable caching for this specific call.                        |
 
 #### `ModelPathOptions`
 
@@ -220,30 +285,60 @@ Enable verbose logs and save intermediate images to help debug OCR pipelines.
 | ------------- | :-------: | :-----: | :----------------------------------------------------- |
 | `verbose`     | `boolean` | `false` | Turn on detailed console logs of each processing step. |
 | `debug`       | `boolean` | `false` | Write intermediate image frames to disk.               |
-| `debugFolder` | `string`  |    `    |
+| `debugFolder` | `string`  |  `out`  | Output directory for debug images.                     |
+
+#### `SessionOptions`
+
+Controls ONNX Runtime session configuration for optimal performance.
+
+| Property                 |                            Type                            |    Default     | Description                                                                      |
+| :----------------------- | :--------------------------------------------------------: | :------------: | :------------------------------------------------------------------------------- |
+| `executionProviders`     |                         `string[]`                         |   `['cpu']`    | Execution providers to use (e.g., `['cpu']`, `['cuda', 'cpu']`).                 |
+| `graphOptimizationLevel` | `'disabled' \| 'basic' \| 'extended' \| 'layout' \| 'all'` |    `'all'`     | Graph optimization level for better performance.                                 |
+| `enableCpuMemArena`      |                         `boolean`                          |     `true`     | Enable CPU memory arena for better memory management.                            |
+| `enableMemPattern`       |                         `boolean`                          |     `true`     | Enable memory pattern optimization.                                              |
+| `executionMode`          |                `'sequential' \| 'parallel'`                | `'sequential'` | Execution mode for the session (`'sequential'` for single-threaded performance). |
+| `interOpNumThreads`      |                          `number`                          |      `0`       | Number of inter-op threads (0 lets ONNX decide).                                 |
+| `intraOpNumThreads`      |                          `number`                          |      `0`       | Number of intra-op threads (0 lets ONNX decide).                                 |
 
 ## Benchmark
 
 Run `bun task bench`. Current result:
 
 ```bash
+> bun task bench
 $ bun scripts/task.ts bench
 Running benchmark: index.bench.ts
-clk: ~3.10 GHz
+clk: ~3.07 GHz
 cpu: Apple M1
 runtime: bun 1.3.0 (arm64-darwin)
 
 benchmark                   avg (min … max) p75 / p99    (min … top 1%)
 ------------------------------------------- -------------------------------
-infer test 1                 272.36 ms/iter 272.98 ms        █
-                    (259.56 ms … 306.24 ms) 290.11 ms ▅▅▅▅▅  █▅▅▅         ▅
-                    ( 32.00 kb …  51.00 mb)  11.33 mb █████▁▁████▁▁▁▁▁▁▁▁▁█
+infer test 1                 ~2.79 µs/iter   2.63 µs   █
+                      (2.38 µs … 526.92 µs)   6.08 µs  █
+                    (  0.00  b … 928.00 kb) 144.47  b ▄█▅▁▂▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁
 
-infer test 2                 274.72 ms/iter 272.44 ms █
-                    (260.34 ms … 334.27 ms) 288.30 ms █
-                    (  0.00  b …   9.48 mb)   1.95 mb ██▁██▁█▁██▁▁▁▁▁▁▁▁▁██
+infer test 2                 ~2.59 µs/iter   2.65 µs   █
+                        (2.47 µs … 2.87 µs)   2.82 µs  █▅▂▂█  █ ▂
+                    (  0.00  b … 1.18 kb)  85.15  b ▆▃█████▆█▆██▆▆▆█▃▁▁▁▃
 
 summary
-  infer test 1
-   1.01x faster than infer test 2
+  infer test 2
+   1.08x faster than infer test 1
+
+------------------------------------------- -------------------------------
+infer deskew test 1          ~13.42 ms/iter  14.08 ms  █  ▃▃██ █
+                      (11.53 ms … 16.43 ms)  16.25 ms  █  ████▂█▂▂  ▂▂▂▂
+                    (  0.00  b … 2.58 mb) 805.57 kb ██▅▅▇█▇█▃▅▅▃▁▅▇▃▃▁▃▁▃
+
+infer deskew test 2          ~13.46 ms/iter  14.05 ms        █
+                      (11.48 ms … 16.55 ms)  15.65 ms ▇█▇   ▂█ ▂▇
+                    (  0.00  b … 1.06 mb)  79.36 kb ████▃▁██▁██▃▁▁▃▃▆▁▃▁▃
+
+summary
+  infer deskew test 2
+   1.01x faster than infer deskew test 1
 ```
+
+> **Performance Note:** The benchmark shows ~2.7µs per iteration with caching enabled. Without caching, performance is approximately 269ms/iter.

@@ -257,15 +257,20 @@ export class RecognitionService {
     const { imageTensor, tensorWidth, tensorHeight } =
       await this.preprocessImage(cropCanvas);
 
-    const inputTensor = new ort.Tensor("float32", imageTensor, [
-      1,
-      3,
-      tensorHeight,
-      tensorWidth,
-    ]);
+    let inputTensor: ort.Tensor | undefined;
+    try {
+      inputTensor = new ort.Tensor("float32", imageTensor, [
+        1,
+        3,
+        tensorHeight,
+        tensorWidth,
+      ]);
 
-    const results = await this.runInference(inputTensor);
-    return this.decodeResults(results, charactersDictionary);
+      const results = await this.runInference(inputTensor);
+      return this.decodeResults(results, charactersDictionary);
+    } finally {
+      inputTensor?.dispose();
+    }
   }
 
   /**
@@ -391,12 +396,7 @@ export class RecognitionService {
       );
     }
 
-    return this.ctcGreedyDecode(
-      outputData,
-      sequenceLength,
-      numClasses,
-      dict
-    );
+    return this.ctcGreedyDecode(outputData, sequenceLength, numClasses, dict);
   }
 
   /**

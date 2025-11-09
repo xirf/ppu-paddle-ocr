@@ -3,8 +3,17 @@ import { PaddleOcrService } from "../src";
 
 const service = new PaddleOcrService({
   debugging: {
-    debug: true,
-    verbose: true,
+    debug: false,
+    verbose: false,
+  },
+  session: {
+    executionProviders: ["cpu"],
+    graphOptimizationLevel: "all",
+    enableCpuMemArena: true,
+    enableMemPattern: true,
+    interOpNumThreads: 0,
+    intraOpNumThreads: 0,
+    executionMode: "sequential",
   },
 });
 await service.initialize();

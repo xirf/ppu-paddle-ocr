@@ -1,4 +1,4 @@
-import { $, file, write, type ShellOutput } from "bun";
+import { $, file, write } from "bun";
 import { mkdir, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -51,6 +51,6 @@ export const cpDirToLib = async (
 export const exec: (...args: Parameters<typeof $>) => Promise<any> = async (
   ...args
 ) =>
-  $(...args).catch((err: ShellOutput) =>
+  $(...args).catch((err: any) =>
     process.stderr.write(err.stderr as any)
   );

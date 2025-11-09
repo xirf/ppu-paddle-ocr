@@ -113,6 +113,29 @@ export interface RecognitionOptions {
 }
 
 /**
+ * Options for individual recognize() calls.
+ */
+export interface RecognizeOptions {
+  /**
+   * Return flattened results instead of grouped by lines.
+   * @default false
+   */
+  flatten?: boolean;
+
+  /**
+   * Custom character dictionary for this specific call.
+   * If provided, caching will be disabled for this call.
+   */
+  dictionary?: string | ArrayBuffer;
+
+  /**
+   * Disable caching for this specific call.
+   * @default false
+   */
+  noCache?: boolean;
+}
+
+/**
  * Full configuration for the PaddleOCR service.
  * Combines model file paths with detection, recognition, and debugging parameters.
  */
@@ -136,6 +159,58 @@ export interface PaddleOptions {
    * Controls logging and image dump behavior for debugging.
    */
   debugging?: DebuggingOptions;
+
+  /**
+   * ONNX Runtime session configuration options.
+   */
+  session?: SessionOptions;
+}
+
+/**
+ * ONNX Runtime session configuration options.
+ */
+export interface SessionOptions {
+  /**
+   * Execution providers to use for inference (e.g., 'cpu', 'cuda').
+   * @default ['cpu']
+   */
+  executionProviders?: string[];
+
+  /**
+   * Graph optimization level for ONNX Runtime.
+   * @default 'all'
+   */
+  graphOptimizationLevel?: "disabled" | "basic" | "extended" | "layout" | "all";
+
+  /**
+   * Enable CPU memory arena for better memory management.
+   * @default true
+   */
+  enableCpuMemArena?: boolean;
+
+  /**
+   * Enable memory pattern optimization.
+   * @default true
+   */
+  enableMemPattern?: boolean;
+
+  /**
+   * Execution mode for the session.
+   * @default 'sequential'
+   */
+  executionMode?: "sequential" | "parallel";
+
+  /**
+   * Number of inter-op threads. 0 lets ONNX decide.
+   * @default 0
+   */
+  interOpNumThreads?: number;
+
+  /**
+   * Number of intra-op threads. 0 lets ONNX decide.
+   * @default 0
+   */
+  intraOpNumThreads?: number;
 }
 
 /**

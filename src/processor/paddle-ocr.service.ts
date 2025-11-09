@@ -7,8 +7,9 @@ import { Canvas, ImageProcessor } from "ppu-ocv";
 import merge from "lodash.merge";
 import { DEFAULT_PADDLE_OPTIONS } from "../constants";
 
-import type { PaddleOptions } from "../interface";
+import type { PaddleOptions, RecognizeOptions } from "../interface";
 import { DetectionService } from "./detection.service";
+import { globalImageCache, ImageCache } from "./image-cache";
 import {
   RecognitionService,
   type RecognitionResult,
@@ -46,6 +47,8 @@ export class PaddleOcrService {
    */
   public constructor(options?: PaddleOptions) {
     this.options = merge({}, DEFAULT_PADDLE_OPTIONS, options);
+    this.options.session =
+      this.options.session || DEFAULT_PADDLE_OPTIONS.session;
   }
 
   /**
@@ -142,7 +145,10 @@ export class PaddleOcrService {
         const resolvedPath = path.resolve(process.cwd(), source);
         this.log(`Loading resource from path: ${resolvedPath}`);
         const buf = readFileSync(resolvedPath);
-        return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+        return buf.buffer.slice(
+          buf.byteOffset,
+          buf.byteOffset + buf.byteLength
+        );
       }
     }
 
@@ -162,7 +168,12 @@ export class PaddleOcrService {
         this.options.model?.detection,
         `${GITHUB_BASE_URL}PP-OCRv5_mobile_det_infer.onnx`
       );
-      this.detectionSession = await ort.InferenceSession.create(detModelBuffer);
+
+      // Use configured session options
+      this.detectionSession = await ort.InferenceSession.create(
+        new Uint8Array(detModelBuffer),
+        this.options.session!
+      );
       this.options.model!.detection = detModelBuffer;
       this.log(
         `Detection ONNX model loaded successfully\n\tinput: ${this.detectionSession.inputNames}\n\toutput: ${this.detectionSession.outputNames}`
@@ -173,8 +184,10 @@ export class PaddleOcrService {
         this.options.model?.recognition,
         `${GITHUB_BASE_URL}en_PP-OCRv4_mobile_rec_infer.onnx`
       );
-      this.recognitionSession =
-        await ort.InferenceSession.create(recModelBuffer);
+      this.recognitionSession = await ort.InferenceSession.create(
+        new Uint8Array(recModelBuffer),
+        this.options.session!
+      );
       this.options.model!.recognition = recModelBuffer;
       this.log(
         `Recognition ONNX model loaded successfully\n\tinput: ${this.recognitionSession.inputNames}\n\toutput: ${this.recognitionSession.outputNames}`
@@ -226,7 +239,10 @@ export class PaddleOcrService {
     );
 
     await this.detectionSession?.release();
-    this.detectionSession = await ort.InferenceSession.create(modelBuffer);
+    this.detectionSession = await ort.InferenceSession.create(
+      new Uint8Array(modelBuffer),
+      this.options.session!
+    );
     this.options.model!.detection = modelBuffer;
     this.log("Detection model changed successfully.");
   }
@@ -245,7 +261,10 @@ export class PaddleOcrService {
     );
 
     await this.recognitionSession?.release();
-    this.recognitionSession = await ort.InferenceSession.create(modelBuffer);
+    this.recognitionSession = await ort.InferenceSession.create(
+      new Uint8Array(modelBuffer),
+      this.options.session!
+    );
     this.options.model!.recognition = modelBuffer;
     this.log("Recognition model changed successfully.");
   }
@@ -286,7 +305,7 @@ export class PaddleOcrService {
    */
   public recognize(
     image: ArrayBuffer | Canvas,
-    options: { flatten: true; dictionary?: string | ArrayBuffer }
+    options: RecognizeOptions & { flatten: true }
   ): Promise<FlattenedPaddleOcrResult>;
 
   /**
@@ -298,7 +317,7 @@ export class PaddleOcrService {
    */
   public recognize(
     image: ArrayBuffer | Canvas,
-    options?: { flatten?: false; dictionary?: string | ArrayBuffer }
+    options?: RecognizeOptions & { flatten?: false }
   ): Promise<PaddleOcrResult>;
 
   /**
@@ -311,7 +330,7 @@ export class PaddleOcrService {
    */
   public async recognize(
     image: ArrayBuffer | Canvas,
-    options?: { flatten?: boolean; dictionary?: string | ArrayBuffer }
+    options?: RecognizeOptions
   ): Promise<PaddleOcrResult | FlattenedPaddleOcrResult> {
     if (!this.isInitialized()) {
       throw new Error(
@@ -319,6 +338,42 @@ export class PaddleOcrService {
       );
     }
     await ImageProcessor.initRuntime();
+
+    let imageBuffer: ArrayBuffer;
+    if (image instanceof ArrayBuffer) {
+      imageBuffer = image;
+    } else {
+      const ctx = image.getContext("2d");
+      const imageData = ctx.getImageData(0, 0, image.width, image.height);
+      imageBuffer = new ArrayBuffer(imageData.data.byteLength);
+      new Uint8Array(imageBuffer).set(
+        new Uint8Array(
+          imageData.data.buffer,
+          imageData.data.byteOffset,
+          imageData.data.byteLength
+        )
+      );
+    }
+
+    const cacheKey = ImageCache.generateKey(imageBuffer);
+
+    // Check cache first (only if noCache is false and no custom dictionary)
+    const cacheResult = !options?.noCache && !options?.dictionary
+      ? globalImageCache.get(cacheKey)
+      : undefined;
+    if (cacheResult) {
+      this.log("Using cached OCR result");
+
+      if (options?.flatten) {
+        return {
+          text: cacheResult.text,
+          results: this.getFlattenedResults(cacheResult.lines),
+          confidence: cacheResult.confidence,
+        };
+      }
+
+      return cacheResult;
+    }
 
     const detector = new DetectionService(
       this.detectionSession!,
@@ -353,15 +408,29 @@ export class PaddleOcrService {
 
     const processed = this.processRecognition(recognition);
 
-    if (options?.flatten) {
-      return {
-        text: processed.text,
-        results: recognition,
-        confidence: processed.confidence,
-      };
+    const result = options?.flatten
+      ? {
+          text: processed.text,
+          results: recognition,
+          confidence: processed.confidence,
+        }
+      : processed;
+
+    // Cache result (only if noCache is false and no custom dictionary)
+    if (!options?.noCache && !options?.dictionary) {
+      globalImageCache.set(cacheKey, result);
     }
 
-    return processed;
+    return result;
+  }
+
+  /**
+   * Flattens recognition results from lines to a single array
+   */
+  private getFlattenedResults(
+    lines: RecognitionResult[][]
+  ): RecognitionResult[] {
+    return lines.flat();
   }
 
   /**

@@ -340,15 +340,11 @@ export class DetectionService {
     width: number,
     height: number
   ): Promise<Float32Array | null> {
+    let inputTensor: ort.Tensor | undefined;
     try {
       this.log("Running detection inference...");
 
-      const inputTensor = new ort.Tensor("float32", tensor, [
-        1,
-        3,
-        height,
-        width,
-      ]);
+      inputTensor = new ort.Tensor("float32", tensor, [1, 3, height, width]);
 
       const feeds = { x: inputTensor };
       const results = await this.session.run(feeds);
@@ -371,6 +367,8 @@ export class DetectionService {
         error instanceof Error ? error.message : String(error)
       );
       throw error;
+    } finally {
+      inputTensor?.dispose();
     }
   }
 
