@@ -343,24 +343,41 @@ export class PaddleOcrService {
     if (image instanceof ArrayBuffer) {
       imageBuffer = image;
     } else {
-      const ctx = image.getContext("2d");
-      const imageData = ctx.getImageData(0, 0, image.width, image.height);
-      imageBuffer = new ArrayBuffer(imageData.data.byteLength);
-      new Uint8Array(imageBuffer).set(
-        new Uint8Array(
-          imageData.data.buffer,
-          imageData.data.byteOffset,
-          imageData.data.byteLength
-        )
-      );
+      if (typeof image.toBuffer === "function") {
+        const buffer = image.toBuffer("image/png");
+        const arrayBuffer = new ArrayBuffer(buffer.byteLength);
+        new Uint8Array(arrayBuffer).set(new Uint8Array(buffer));
+        imageBuffer = arrayBuffer;
+      } else if (typeof image.toDataURL === "function") {
+        const dataURL = image.toDataURL("image/png");
+        const base64Data = dataURL.replace(/^data:image\/png;base64,/, "");
+
+        const buffer = Buffer.from(base64Data, "base64");
+
+        const arrayBuffer = new ArrayBuffer(buffer.byteLength);
+        new Uint8Array(arrayBuffer).set(new Uint8Array(buffer));
+        imageBuffer = arrayBuffer;
+      } else {
+        const ctx = image.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, image.width, image.height);
+        imageBuffer = new ArrayBuffer(imageData.data.byteLength);
+        new Uint8Array(imageBuffer).set(
+          new Uint8Array(
+            imageData.data.buffer,
+            imageData.data.byteOffset,
+            imageData.data.byteLength
+          )
+        );
+      }
     }
 
     const cacheKey = ImageCache.generateKey(imageBuffer);
 
     // Check cache first (only if noCache is false and no custom dictionary)
-    const cacheResult = !options?.noCache && !options?.dictionary
-      ? globalImageCache.get(cacheKey)
-      : undefined;
+    const cacheResult =
+      !options?.noCache && !options?.dictionary
+        ? globalImageCache.get(cacheKey)
+        : undefined;
     if (cacheResult) {
       this.log("Using cached OCR result");
 
