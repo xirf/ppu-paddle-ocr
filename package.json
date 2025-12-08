@@ -1,6 +1,6 @@
 {
   "name": "ppu-paddle-ocr",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "description": "Blazing-fast and lightweight PaddleOCR library for Node.js and Bun. Perform accurate text detection, recognition, and image deskew with a simple, modern, and type-safe API. Ideal for document processing, data extraction, and computer vision tasks.",
   "keywords": [
     "accurate-ocr",
@@ -61,7 +61,8 @@
     "tsx": "latest",
     "typescript": "latest",
     "typescript-eslint": "latest",
-    "uglify-js": ">=2.4.24"
+    "uglify-js": ">=2.4.24",
+    "onnxruntime-node": "^1.23.2"
   },
   "repository": {
     "type": "git",
@@ -69,7 +70,9 @@
   },
   "dependencies": {
     "lodash.merge": "^4.6.2",
-    "onnxruntime-node": "^1.23.2",
     "ppu-ocv": "^1.3.0"
+  },
+  "peerDependencies": {
+    "onnxruntime-node": "^1.23.2"
   }
 }
