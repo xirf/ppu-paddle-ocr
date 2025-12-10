@@ -28,7 +28,7 @@ export const DEFAULT_RECOGNITION_OPTIONS: RecognitionOptions = {
 };
 
 export const DEFAULT_SESSION_OPTIONS: SessionOptions = {
-  executionProviders: ["cuda", "cpu"],
+  executionProviders: ["cpu"],
   graphOptimizationLevel: "all",
   enableCpuMemArena: true,
   enableMemPattern: true,
