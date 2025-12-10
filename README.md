@@ -291,15 +291,15 @@ Enable verbose logs and save intermediate images to help debug OCR pipelines.
 
 Controls ONNX Runtime session configuration for optimal performance.
 
-| Property                 |                            Type                            |      Default      | Description                                                                      |
-| :----------------------- | :--------------------------------------------------------: | :---------------: | :------------------------------------------------------------------------------- |
-| `executionProviders`     |                         `string[]`                         | `['cuda', 'cpu']` | Execution providers to use (e.g., `['cpu']`, `['cuda', 'cpu']`).                 |
-| `graphOptimizationLevel` | `'disabled' \| 'basic' \| 'extended' \| 'layout' \| 'all'` |      `'all'`      | Graph optimization level for better performance.                                 |
-| `enableCpuMemArena`      |                         `boolean`                          |      `true`       | Enable CPU memory arena for better memory management.                            |
-| `enableMemPattern`       |                         `boolean`                          |      `true`       | Enable memory pattern optimization.                                              |
-| `executionMode`          |                `'sequential' \| 'parallel'`                |  `'sequential'`   | Execution mode for the session (`'sequential'` for single-threaded performance). |
-| `interOpNumThreads`      |                          `number`                          |        `0`        | Number of inter-op threads (0 lets ONNX decide).                                 |
-| `intraOpNumThreads`      |                          `number`                          |        `0`        | Number of intra-op threads (0 lets ONNX decide).                                 |
+| Property                 |                            Type                            |    Default     | Description                                                                      |
+| :----------------------- | :--------------------------------------------------------: | :------------: | :------------------------------------------------------------------------------- |
+| `executionProviders`     |                         `string[]`                         |   `['cpu']`    | Execution providers to use (e.g., `['cpu']`, `['cuda', 'cpu']`).                 |
+| `graphOptimizationLevel` | `'disabled' \| 'basic' \| 'extended' \| 'layout' \| 'all'` |    `'all'`     | Graph optimization level for better performance.                                 |
+| `enableCpuMemArena`      |                         `boolean`                          |     `true`     | Enable CPU memory arena for better memory management.                            |
+| `enableMemPattern`       |                         `boolean`                          |     `true`     | Enable memory pattern optimization.                                              |
+| `executionMode`          |                `'sequential' \| 'parallel'`                | `'sequential'` | Execution mode for the session (`'sequential'` for single-threaded performance). |
+| `interOpNumThreads`      |                          `number`                          |      `0`       | Number of inter-op threads (0 lets ONNX decide).                                 |
+| `intraOpNumThreads`      |                          `number`                          |      `0`       | Number of intra-op threads (0 lets ONNX decide).                                 |
 
 ## Benchmark
 
