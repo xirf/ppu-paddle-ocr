@@ -55,13 +55,6 @@ yarn add ppu-paddle-ocr
 bun add ppu-paddle-ocr
 ```
 
-> [!NOTE]
-> This project is developed and tested primarily with Bun.
-> Support for Node.js, Deno, or browser environments is **not guaranteed**.
->
-> If you choose to use it outside of Bun and encounter any issues, feel free to report them.
-> I'm open to fixing bugs for other runtimes with community help.
-
 ## Usage
 
 #### Basic Usage
