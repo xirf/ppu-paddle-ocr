@@ -4,7 +4,7 @@ import type {
   PaddleOptions,
   RecognitionOptions,
   SessionOptions,
-} from "./interface";
+} from "./interface.js";
 
 export const DEFAULT_DEBUGGING_OPTIONS: DebuggingOptions = {
   verbose: false,

@@ -10,9 +10,9 @@ import {
 import {
   DEFAULT_DEBUGGING_OPTIONS,
   DEFAULT_DETECTION_OPTIONS,
-} from "../constants";
-import type { Box, DebuggingOptions, DetectionOptions } from "../interface";
-import { DeskewService } from "./deskew.service";
+} from "../constants.js";
+import type { Box, DebuggingOptions, DetectionOptions } from "../interface.js";
+import { DeskewService } from "./deskew.service.js";
 
 /**
  * Result of preprocessing an image for text detection

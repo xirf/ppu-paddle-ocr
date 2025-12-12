@@ -5,15 +5,15 @@ import * as path from "path";
 import { Canvas, ImageProcessor } from "ppu-ocv";
 
 import merge from "lodash.merge";
-import { DEFAULT_PADDLE_OPTIONS } from "../constants";
+import { DEFAULT_PADDLE_OPTIONS } from "../constants.js";
 
-import type { PaddleOptions, RecognizeOptions } from "../interface";
-import { DetectionService } from "./detection.service";
-import { globalImageCache, ImageCache } from "./image-cache";
+import type { PaddleOptions, RecognizeOptions } from "../interface.js";
+import { DetectionService } from "./detection.service.js";
+import { globalImageCache, ImageCache } from "./image-cache.js";
 import {
   RecognitionService,
   type RecognitionResult,
-} from "./recognition.service";
+} from "./recognition.service.js";
 
 export interface PaddleOcrResult {
   text: string;

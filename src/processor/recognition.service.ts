@@ -3,8 +3,12 @@ import { Canvas, CanvasToolkit, ImageProcessor } from "ppu-ocv";
 import {
   DEFAULT_DEBUGGING_OPTIONS,
   DEFAULT_RECOGNITION_OPTIONS,
-} from "../constants";
-import type { Box, DebuggingOptions, RecognitionOptions } from "../interface";
+} from "../constants.js";
+import type {
+  Box,
+  DebuggingOptions,
+  RecognitionOptions,
+} from "../interface.js";
 
 export interface RecognitionResult {
   text: string;

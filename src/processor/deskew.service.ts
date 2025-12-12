@@ -2,8 +2,8 @@ import { Contours, ImageProcessor, cv, type Canvas } from "ppu-ocv";
 import {
   DEFAULT_DEBUGGING_OPTIONS,
   DEFAULT_DETECTION_OPTIONS,
-} from "../constants";
-import type { DebuggingOptions, DetectionOptions } from "../interface";
+} from "../constants.js";
+import type { DebuggingOptions, DetectionOptions } from "../interface.js";
 
 export class DeskewService {
   private readonly options: DetectionOptions;
