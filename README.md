@@ -91,11 +91,11 @@ You can clear the cache model and force refetch/download using this one liner. Y
 
 Using Bun:
 
-`bun -e "import('paddle-ocr.js').then(m => new m.PaddleOcrService().clearModelCache())"`
+`bun -e "import('ppu-paddle-ocr').then(m => new m.PaddleOcrService().clearModelCache())"`
 
 Using Node:
 
-`node -e "import('paddle-ocr.js').then(m => new m.PaddleOcrService().clearModelCache())"`
+`node -e "import('ppu-paddle-ocr').then(m => new m.PaddleOcrService().clearModelCache())"`
 
 #### Optimizing Performance with Session Options
 
