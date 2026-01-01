@@ -85,6 +85,18 @@ await service.destroy();
 service.clearModelCache();
 ```
 
+#### Updating model library without reinstalling
+
+You can clear the cache model and force refetch/download using this one liner. You can also use this as warmup.
+
+Using Bun:
+
+`bun -e "import('paddle-ocr.js').then(m => new m.PaddleOcrService().clearModelCache())"`
+
+Using Node:
+
+`node -e "import('paddle-ocr.js').then(m => new m.PaddleOcrService().clearModelCache())"`
+
 #### Optimizing Performance with Session Options
 
 You can fine-tune the ONNX Runtime session configuration for optimal performance:
