@@ -166,7 +166,7 @@ export class PaddleOcrService {
       // Load detection model
       const detModelBuffer = await this._loadResource(
         this.options.model?.detection,
-        `${GITHUB_BASE_URL}PP-OCRv5_mobile_det_infer.onnx`
+        `${GITHUB_BASE_URL}paddleocr-detection.onnx`
       );
 
       // Use configured session options
@@ -182,7 +182,7 @@ export class PaddleOcrService {
       // Load recognition model
       const recModelBuffer = await this._loadResource(
         this.options.model?.recognition,
-        `${GITHUB_BASE_URL}en_PP-OCRv4_mobile_rec_infer.onnx`
+        `${GITHUB_BASE_URL}paddleocr-recognition.onnx`
       );
       this.recognitionSession = await ort.InferenceSession.create(
         new Uint8Array(recModelBuffer),
@@ -235,7 +235,7 @@ export class PaddleOcrService {
     this.log("Changing detection model...");
     const modelBuffer = await this._loadResource(
       model,
-      `${GITHUB_BASE_URL}PP-OCRv5_mobile_det_infer.onnx`
+      `${GITHUB_BASE_URL}paddleocr-detection.onnx`
     );
 
     await this.detectionSession?.release();
@@ -257,7 +257,7 @@ export class PaddleOcrService {
     this.log("Changing recognition model...");
     const modelBuffer = await this._loadResource(
       model,
-      `${GITHUB_BASE_URL}en_PP-OCRv4_mobile_rec_infer.onnx`
+      `${GITHUB_BASE_URL}paddleocr-recognition.onnx`
     );
 
     await this.recognitionSession?.release();

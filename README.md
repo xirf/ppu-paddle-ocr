@@ -192,12 +192,6 @@ const result = await service.recognize("./assets/receipt.jpg", {
 
 ## Models
 
-### `ppu-paddle-ocr` v2.x.x (Default)
-
-- detection: `PP-OCRv5_mobile_det_infer.onnx`
-- recogniton: `en_PP-OCRv4_mobile_rec_infer.onnx`
-- dictionary: `en_dict.txt` (97 class)
-
 See: [Models](./src/models/)
 See also: [How to convert paddle ocr model to onnx](./examples/convert-onnx.ipynb)
 
