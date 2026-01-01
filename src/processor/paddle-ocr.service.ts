@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import * as ort from "onnxruntime-node";
 import * as os from "os";
 import * as path from "path";
@@ -196,7 +196,7 @@ export class PaddleOcrService {
       // Load character dictionary
       const dictBuffer = await this._loadResource(
         this.options.model?.charactersDictionary,
-        `${GITHUB_BASE_URL}en_dict.txt`
+        `${GITHUB_BASE_URL}ppocrv5_en_dict.txt`
       );
       const dictionaryContent = Buffer.from(dictBuffer).toString("utf-8");
       const charactersDictionary = dictionaryContent.split("\n");
@@ -279,7 +279,7 @@ export class PaddleOcrService {
     this.log("Changing text dictionary...");
     const dictBuffer = await this._loadResource(
       dictionary,
-      `${GITHUB_BASE_URL}en_dict.txt`
+      `${GITHUB_BASE_URL}ppocrv5_en_dict.txt`
     );
 
     const dictionaryContent = Buffer.from(dictBuffer).toString("utf-8");
@@ -532,6 +532,20 @@ export class PaddleOcrService {
 
     const detection = await detector.deskew(image);
     return detection;
+  }
+
+  /**
+   * Clears the model cache directory, removing all cached model files.
+   * This will force models to be re-downloaded on the next initialization.
+   */
+  public clearModelCache(): void {
+    if (existsSync(CACHE_DIR)) {
+      this.log(`Clearing model cache at: ${CACHE_DIR}`);
+      rmSync(CACHE_DIR, { recursive: true, force: true });
+      console.log(`[PaddleOcrService] Model cache cleared: ${CACHE_DIR}`);
+    } else {
+      this.log("Cache directory does not exist, nothing to clear.");
+    }
   }
 
   /**

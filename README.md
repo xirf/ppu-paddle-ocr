@@ -80,6 +80,9 @@ console.log(result.text);
 
 // It's important to destroy the service when you're done to release resources.
 await service.destroy();
+
+// If you're updating ppu-paddle-ocr to the new release and wants to change/redownload the model
+service.clearModelCache();
 ```
 
 #### Optimizing Performance with Session Options
